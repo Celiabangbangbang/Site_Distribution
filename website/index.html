@@ -631,14 +631,23 @@
         // 生成座位表
         function generateSeats() {
             const rowInputs = document.querySelectorAll('.row-cols-input');
-            seatMap = [];
+            const newSeatMap = [];
             
             rowInputs.forEach(input => {
                 const row = parseInt(input.dataset.row);
                 const cols = parseInt(input.value) || 5;
-                seatMap[row] = { cols: cols, seats: new Array(cols * 2).fill(null) };
+                const existing = seatMap[row] || {};
+                const oldSeats = existing.seats || [];
+                const newSeats = new Array(cols * 2).fill(null);
+                
+                for (let i = 0; i < newSeats.length && i < oldSeats.length; i++) {
+                    newSeats[i] = oldSeats[i];
+                }
+                
+                newSeatMap[row] = { cols: cols, seats: newSeats };
             });
             
+            seatMap = newSeatMap;
             renderSeatMap();
         }
 
