@@ -191,6 +191,13 @@
             color: #999;
         }
         
+        .seat-name.marked-empty {
+            background: #dc3545 !important;
+            color: white !important;
+            font-weight: bold !important;
+            border: 1px solid #a71d2a !important;
+        }
+        
         .seat-name.assigned-seat {
             background-image: none;
             cursor: pointer;
@@ -971,13 +978,18 @@
                         seat1.addEventListener('mouseleave', () => {
                             seat1.style.transform = 'scale(1)';
                         });
+                    } else if (seat1Val === '/') {
+                        seat1.className = 'seat-name marked-empty';
+                        seat1.textContent = '/';
+                        deskUnit1.style.backgroundColor = '#fce4e4';
+                        deskUnit1.style.border = '1px solid #dc3545';
                     } else {
                         seat1.className = 'seat-name empty';
-                        seat1.textContent = seat1Val === '/' ? '/' : '空';
-                        seat1.style.cursor = 'pointer';
+                        seat1.textContent = '空';
                         deskUnit1.style.backgroundColor = '#f0f0f0';
                         deskUnit1.style.border = '1px solid #ddd';
                     }
+                    seat1.style.cursor = 'pointer';
                     seat1.ondragstart = onDragStart;
                     seat1.ondragend = onDragEnd;
                     seat1.ondragover = onDragOver;
@@ -1024,13 +1036,18 @@
                         seat2.addEventListener('mouseleave', () => {
                             seat2.style.transform = 'scale(1)';
                         });
+                    } else if (seat2Val === '/') {
+                        seat2.className = 'seat-name marked-empty';
+                        seat2.textContent = '/';
+                        deskUnit2.style.backgroundColor = '#fce4e4';
+                        deskUnit2.style.border = '1px solid #dc3545';
                     } else {
                         seat2.className = 'seat-name empty';
-                        seat2.textContent = seat2Val === '/' ? '/' : '空';
-                        seat2.style.cursor = 'pointer';
+                        seat2.textContent = '空';
                         deskUnit2.style.backgroundColor = '#f0f0f0';
                         deskUnit2.style.border = '1px solid #ddd';
                     }
+                    seat2.style.cursor = 'pointer';
                     seat2.ondragstart = onDragStart;
                     seat2.ondragend = onDragEnd;
                     seat2.ondragover = onDragOver;
