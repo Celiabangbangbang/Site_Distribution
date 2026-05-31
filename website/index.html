@@ -478,13 +478,18 @@
         }
 
         .employee-tag {
-            padding: 4px 10px;
-            border-radius: 14px;
-            font-size: 0.78em;
+            flex: 0 0 calc(50% - 2px);
+            padding: 3px 6px;
+            border-radius: 12px;
+            font-size: 0.72em;
             cursor: grab;
             user-select: none;
             transition: all 0.2s ease;
             font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .employee-tag.dragging {
@@ -527,8 +532,8 @@
 
         .department-employee-list {
             display: flex;
-            flex-direction: column;
-            gap: 5px;
+            flex-wrap: wrap;
+            gap: 4px;
             min-height: 30px;
             max-height: 110px;
             overflow-y: auto;
