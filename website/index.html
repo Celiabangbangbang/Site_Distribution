@@ -261,20 +261,21 @@
 
         /* 行左侧部门标签 */
         .row-label-input {
-            width: 58px;
-            font-size: 0.5em;
+            width: 24px;
+            font-size: 0.48em;
             border: 1.5px solid #d0d5f0;
             border-radius: 5px;
-            padding: 3px 5px;
+            padding: 3px 2px;
             text-align: center;
             background: #f5f7ff;
             color: #4a4a6a;
             margin-right: 4px;
             writing-mode: vertical-lr;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             cursor: text;
             font-weight: 600;
             transition: all 0.2s ease;
+            min-width: 20px;
         }
         .row-label-input:focus {
             outline: none;
@@ -918,6 +919,7 @@
                 rowLabel.addEventListener('input', function() {
                     rowLabels[rowIndex] = this.value;
                     saveData();
+                    updateEmployeeList();
                 });
                 rowDiv.appendChild(rowLabel);
                 
@@ -1133,8 +1135,26 @@
                 employeesByDept[department].push(fullName);
             });
             
+            // 获取行标签中已填写的部门（去重且保留填入顺序）
+            const matchedDepts = [];
+            const seen = new Set();
+            rowLabels.forEach(label => {
+                const trimmed = label.trim();
+                if (trimmed && !seen.has(trimmed) && DEPARTMENTS[trimmed]) {
+                    matchedDepts.push(trimmed);
+                    seen.add(trimmed);
+                }
+            });
+            
+            // 按优先级排序：行标签部门优先，其余按原顺序
+            const allDepts = Object.keys(employeesByDept);
+            const sortedDepts = [
+                ...matchedDepts,
+                ...allDepts.filter(d => !matchedDepts.includes(d))
+            ];
+            
             // 渲染每个部门（不包括其他）
-            Object.keys(employeesByDept).forEach(dept => {
+            sortedDepts.forEach(dept => {
                 const deptEmployees = employeesByDept[dept];
                 if (deptEmployees.length === 0 || dept === '其他') return; // 跳过空部门和其他部门
                 
