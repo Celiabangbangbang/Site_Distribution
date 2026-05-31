@@ -98,6 +98,7 @@
             display: flex;
             margin-bottom: 25px;
             justify-content: center;
+            align-items: center;
         }
 
         .overview-desk {
@@ -173,6 +174,70 @@
         .seat-name.assigned-seat {
             background-image: none;
             cursor: pointer;
+        }
+
+        /* 左右布局 */
+        .overview-layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .overview-left {
+            flex: 0 0 auto;
+        }
+
+        .overview-right {
+            flex: 1;
+            min-width: 0;
+            background: white;
+            border-radius: 8px;
+            border: 2px dashed #ccc;
+            padding: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .overview-right::-webkit-scrollbar {
+            width: 4px;
+        }
+        .overview-right::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 2px;
+        }
+
+        .employee-list-scroll {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-subtitle {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        /* 行左侧部门标签 */
+        .row-label-input {
+            width: 55px;
+            font-size: 0.5em;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 2px 4px;
+            text-align: center;
+            background: #fafafa;
+            color: #555;
+            margin-right: 4px;
+            writing-mode: vertical-lr;
+            letter-spacing: 1px;
+            cursor: text;
+        }
+        .row-label-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
         }
 
         /* 控制面板 */
@@ -443,21 +508,27 @@
     <div class="container">
         <h1>🏢 座位表生成器</h1>
 
-        <!-- 座位图总览 -->
+        <!-- 座位图总览 & 待分配员工 左右布局 -->
         <div class="section">
             <div class="section-title">座位图总览</div>
-            <div id="seat-map-overview"></div>
-            <div class="export-buttons">
-                <button class="btn btn-success" onclick="exportAsImage()">导出为图片</button>
-                <button class="btn btn-info" onclick="previewImage()">预览导出效果</button>
+            <div class="overview-layout">
+                <div class="overview-left">
+                    <div id="seat-map-overview"></div>
+                    <div class="export-buttons">
+                        <button class="btn btn-success" onclick="exportAsImage()">导出为图片</button>
+                        <button class="btn btn-info" onclick="previewImage()">预览导出效果</button>
+                        <button class="btn btn-primary" onclick="exportConfig()">导出配置</button>
+                        <button class="btn" onclick="document.getElementById('import-config-input').click()" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white;">导入配置</button>
+                        <button class="btn" onclick="copyShareLink()" style="background: linear-gradient(135deg, #00b894, #55efc4); color: white;">复制分享链接</button>
+                        <input type="file" id="import-config-input" accept=".json" onchange="importConfig(event)" style="display:none;">
+                    </div>
+                </div>
+                <div class="overview-right">
+                    <div class="section-subtitle">待分配员工（拖拽到座位图）</div>
+                    <div id="employee-list-container" class="employee-list-scroll"></div>
+                    <span id="employee-count" style="color: #666; margin-top: 10px; display: block;"></span>
+                </div>
             </div>
-        </div>
-
-        <!-- 解析后的员工名单（可拖拽） -->
-        <div class="section">
-            <div class="section-title">待分配员工（拖拽到座位图）</div>
-            <div id="employee-list-container" style="display: flex; flex-wrap: wrap; gap: 15px; background: white; padding: 15px; border-radius: 8px; border: 2px dashed #ccc;"></div>
-            <span id="employee-count" style="color: #666; margin-top: 10px; display: block;"></span>
         </div>
 
         <!-- 员工名单输入区 -->
@@ -513,6 +584,7 @@
         // 全局状态
         let employees = [];
         let seatMap = [];
+        let rowLabels = [];
         let draggedElement = null;
         let draggedSeatPosition = null;
 
@@ -534,6 +606,7 @@
             const data = {
                 employees: employees,
                 seatMap: seatMap,
+                rowLabels: rowLabels,
                 totalRows: parseInt(document.getElementById('total-rows').value) || 11,
                 defaultCols: parseInt(document.getElementById('default-cols').value) || 7,
                 rowSettings: Array.from(document.querySelectorAll('.row-cols-input')).map(input => ({
@@ -552,6 +625,7 @@
                     const data = JSON.parse(saved);
                     employees = data.employees || [];
                     seatMap = data.seatMap || [];
+                    rowLabels = data.rowLabels || [];
                     
                     if (data.totalRows) document.getElementById('total-rows').value = data.totalRows;
                     if (data.defaultCols) document.getElementById('default-cols').value = data.defaultCols;
@@ -648,6 +722,9 @@
             });
             
             seatMap = newSeatMap;
+            if (rowLabels.length !== seatMap.length) {
+                rowLabels = seatMap.map((r, i) => rowLabels[i] || '');
+            }
             renderSeatMap();
         }
 
@@ -679,6 +756,19 @@
             seatMap.forEach((row, rowIndex) => {
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'overview-row';
+                
+                // 行左侧可编辑部门标签
+                const rowLabel = document.createElement('input');
+                rowLabel.className = 'row-label-input';
+                rowLabel.type = 'text';
+                rowLabel.placeholder = '部门';
+                rowLabel.value = rowLabels[rowIndex] || '';
+                rowLabel.title = '点击编辑该行部门名称';
+                rowLabel.addEventListener('input', function() {
+                    rowLabels[rowIndex] = this.value;
+                    saveData();
+                });
+                rowDiv.appendChild(rowLabel);
                 
                 for (let col = 0; col < row.cols; col++) {
                     const deskDiv = document.createElement('div');
